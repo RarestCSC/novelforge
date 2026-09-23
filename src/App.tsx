@@ -1,226 +1,32 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, Bot, ChevronDown, FileText, Library, Menu, MoreHorizontal, PenLine, Plus, Search, Settings2, Sparkles, Sun, WandSparkles, X } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookOpen, Bot, ChevronDown, FileText, Library, Menu, MoreHorizontal, PenLine, Plus, Search, Settings2, Sparkles, Sun, Trash2, WandSparkles, X } from 'lucide-react';
 import './styles.css';
 
-type Chapter = { id: string; title: string; words: number; status?: 'draft' | 'done' };
-const seed: Chapter[] = [
-  { id: '1', title: '第一章  雨夜来客', words: 2486, status: 'done' },
-  { id: '2', title: '第二章  灰塔之下', words: 1830, status: 'draft' },
-  { id: '3', title: '第三章  未寄出的信', words: 0, status: 'draft' },
-];
-
-const sample = `雨落下来的时候，灰塔刚好敲响第十二声钟。
-
-林默站在旧车站的屋檐下，手里捏着那封没有署名的信。信封被雨水浸得发皱，唯一清晰的，是火漆上那枚陌生的银色月纹。
-
-远处的轨道隐入黑暗，像一条沉默的蛇。最后一班列车早已离站，可站台尽头却亮起了一盏灯。`;
-
-function App() {
-  const [chapters, setChapters] = useState(seed);
-  const [selected, setSelected] = useState('1');
-  const [text, setText] = useState(() => localStorage.getItem('novelforge-draft') || sample);
-  const [mode, setMode] = useState('续写');
-  const [assistantOpen, setAssistantOpen] = useState(true);
-  const [result, setResult] = useState('选择一个 AI 操作，结果会显示在这里。');
-
-  const current = useMemo(() => chapters.find((c) => c.id === selected) ?? chapters[0], [chapters, selected]);
-  const wordCount = useMemo(() => text.replace(/\s/g, '').length, [text]);
-
-  const runAi = () => {
-    setResult(mode === '续写'
-      ? '林默抬起头。那个人的脸藏在帽檐的阴影里，只有一双眼睛，像两粒被雨水打磨过的黑曜石。\n\n“把信交给我。”\n\n车站的灯忽然全部熄灭。'
-      : mode === '总结'
-        ? '本章讲述林默在雨夜抵达旧车站，并遇见一位等待他的神秘人物。银色月纹和未署名的信件暗示着更大的秘密。'
-        : '这段落的语气沉静而压抑，雨夜与车站等场景起到了很强的心理铺垫作用。');
-  };
-
-  React.useEffect(() => {
-    localStorage.setItem('novelforge-draft', text);
-  }, [text]);
-
-  return (
-    <div className="app">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brand-mark"><BookOpen size={18} /></div>
-          <div>
-            <b>NovelForge</b>
-            <small>AI 小说工作台</small>
-          </div>
-        </div>
-
-        <div className="crumbs">
-          <span>我的作品</span>
-          <span>/</span>
-          <strong>雾中月</strong>
-          <ChevronDown size={12} />
-        </div>
-
-        <div className="top-actions">
-          <span className="saved"><span className="dot" /> 已自动保存</span>
-          <button className="icon-btn"><Search size={16} /></button>
-          <button className="icon-btn"><Sun size={16} /></button>
-          <button className="avatar">R</button>
-        </div>
-      </header>
-
-      <div className="workspace">
-        <aside className="sidebar">
-          <div className="side-header">
-            <span>作品导航</span>
-            <button><MoreHorizontal size={14} /></button>
-          </div>
-
-          <div className="book-card">
-            <div className="book-cover">雾<br/>海</div>
-            <div className="book-info">
-              <strong>雾中月</strong>
-              <small>奇幻 · 连载中</small>
-            </div>
-            <ChevronDown size={14} />
-          </div>
-
-          <div className="side-nav">
-            <div className="nav-head">
-              <span>章节</span>
-              <span>12,486 字</span>
-            </div>
-
-            <div className="tree">
-              <div className="volume">
-                <div className="volume-row">
-                  <ChevronDown size={12} />
-                  <span>第一卷 · 月影</span>
-                  <button onClick={() => {
-                    const id = String(Date.now());
-                    setChapters((prev) => [...prev, { id, title: `第${prev.length + 1}章  未命名章节`, words: 0, status: 'draft' }]);
-                    setSelected(id);
-                  }}><Plus size={13} /></button>
-                </div>
-
-                {chapters.map((chapter) => (
-                  <button
-                    key={chapter.id}
-                    className={`chapter ${chapter.id === selected ? 'selected' : ''}`}
-                    onClick={() => setSelected(chapter.id)}
-                  >
-                    <FileText size={14} />
-                    <span>{chapter.title}</span>
-                    <em>{chapter.words ? `${Math.floor(chapter.words / 1000)}k` : '—'}</em>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="side-footer">
-            <button><Library size={15} /> 资料库</button>
-            <button><PenLine size={15} /> 故事大纲</button>
-            <button><Settings2 size={15} /> 工作台设置</button>
-          </div>
-        </aside>
-
-        <main className="editor-panel">
-          <div className="editor-toolbar">
-            <div className="mode-tabs">
-              <button className="active">写作</button>
-              <button>大纲</button>
-              <button>资料</button>
-            </div>
-
-            <div className="toolbar-right">
-              <span className="status-pill"><span className="dot" /> 写作中</span>
-              <button className="icon-btn"><Menu size={16} /></button>
-            </div>
-          </div>
-
-          <div className="editor-shell">
-            <div className="editor-wrap">
-              <div className="eyebrow">第一卷 · 月影</div>
-              <div className="title-box">
-                <input
-                  value={current.title}
-                  onChange={(e) => setChapters((prev) => prev.map((chapter) => chapter.id === selected ? { ...chapter, title: e.target.value } : chapter))}
-                />
-              </div>
-              <div className="chapter-meta">第 1 章</div>
-              <div className="rule" />
-              <textarea
-                value={text}
-                onChange={(e) => {
-                  setText(e.target.value);
-                  setChapters((prev) => prev.map((chapter) => chapter.id === selected ? { ...chapter, words: e.target.value.replace(/\s/g, '').length } : chapter));
-                }}
-                spellCheck={false}
-              />
-              <div className="editor-footer">
-                <span>Markdown 支持</span>
-                <span>{wordCount.toLocaleString()} 字</span>
-              </div>
-            </div>
-          </div>
-        </main>
-
-        {assistantOpen && (
-          <aside className="ai-panel">
-            <div className="ai-head">
-              <div className="ai-title">
-                <div className="ai-mark"><Bot size={16} /></div>
-                <div>
-                  <b>AI 助手</b>
-                  <small>让灵感继续发生</small>
-                </div>
-              </div>
-              <button className="icon-btn" onClick={() => setAssistantOpen(false)}><X size={16} /></button>
-            </div>
-
-            <div className="tab-group">
-              {['续写', '总结', '润色'].map((item) => (
-                <button key={item} className={mode === item ? 'active' : ''} onClick={() => setMode(item)}>{item}</button>
-              ))}
-            </div>
-
-            <div className="context-box">
-              <div className="head">
-                <span>当前上下文</span>
-                <span>3 项</span>
-              </div>
-              <div className="context-item"><FileText size={12} /> 当前章节 <span>已启用</span></div>
-              <div className="context-item"><Library size={12} /> 人物设定 <span>已启用</span></div>
-              <div className="context-item"><BookOpen size={12} /> 第一卷摘要 <span>已启用</span></div>
-            </div>
-
-            <div className="ai-actions">
-              <p>你想做什么？</p>
-              <div className="action-grid">
-                <button onClick={runAi}><WandSparkles size={15} /><span>续写</span><small>延续剧情</small></button>
-                <button onClick={runAi}><Sparkles size={15} /><span>总结</span><small>提炼要点</small></button>
-                <button onClick={runAi}><Sparkles size={15} /><span>润色</span><small>优化表达</small></button>
-                <button onClick={runAi}><PenLine size={15} /><span>扩写</span><small>丰富细节</small></button>
-              </div>
-            </div>
-
-            <div className="result-box">
-              <div className="title"><Sparkles size={12} /> AI 结果</div>
-              {result}
-            </div>
-
-            <div className="prompt-box">
-              <textarea placeholder="告诉 AI 你的创作要求……" />
-              <button className="send" onClick={runAi}><WandSparkles size={14} /> 开始{mode}</button>
-            </div>
-
-            <div className="model-row">
-              <div className="left"><span className="dot" /> OpenAI 兼容接口</div>
-              <span>切换</span>
-            </div>
-          </aside>
-        )}
-      </div>
-
-      {!assistantOpen && <button className="open-ai" onClick={() => setAssistantOpen(true)}><Bot size={15} /> 打开 AI 助手</button>}
-    </div>
-  );
+type Chapter={id:string;title:string;words:number;status:'draft'|'done';content:string};
+type Volume={id:string;title:string;chapters:Chapter[]};
+type Novel={id:string;title:string;subtitle:string;volumes:Volume[]};
+type Note={id:string;name:string;detail:string};
+const sample=`雨落下来的时候，灰塔刚好敲响第十二声钟。\n\n林默站在旧车站的屋檐下，手里捏着那封没有署名的信。信封被雨水浸得发皱，唯一清晰的，是火漆上那枚陌生的银色月纹。\n\n远处的轨道隐入黑暗，像一条沉默的蛇。最后一班列车早已离站，可站台尽头却亮起了一盏灯。`;
+const initial:Novel={id:'novel-1',title:'雾中月',subtitle:'奇幻 · 连载中',volumes:[{id:'v1',title:'第一卷 · 月影',chapters:[{id:'c1',title:'第一章  雨夜来客',words:2486,status:'done',content:sample},{id:'c2',title:'第二章  灰塔之下',words:1830,status:'draft',content:'灰塔里没有人声，只有冷风穿过每道长廊。'},{id:'c3',title:'第三章  未寄出的信',words:0,status:'draft',content:'信封在桌上泛着潮湿的光。'}]},{id:'v2',title:'第二卷 · 深海回声',chapters:[{id:'c4',title:'第四章  潮汐之后',words:0,status:'draft',content:'海浪在无尽的夜里将记忆冲刷干净。'}]}]};
+const emptyNotes:Note[]=[];
+function read<T>(key:string,fallback:T):T{try{return JSON.parse(localStorage.getItem(key)||'null')||fallback}catch{return fallback}}
+function App(){
+ const[novel,setNovel]=useState<Novel>(()=>read('novelforge-novel',initial)); const[volumeId,setVolumeId]=useState('v1'); const[chapterId,setChapterId]=useState('c1');
+ const[people,setPeople]=useState<Note[]>(()=>read('novelforge-people',emptyNotes)); const[world,setWorld]=useState<Note[]>(()=>read('novelforge-world',emptyNotes)); const[mode,setMode]=useState('续写'); const[result,setResult]=useState('选择一个 AI 操作，结果会显示在这里。'); const[assistant,setAssistant]=useState(true); const[modal,setModal]=useState<'library'|'settings'|null>(null); const[libTab,setLibTab]=useState<'人物'|'世界观'|'大纲'>('人物');
+ const volume=useMemo(()=>novel.volumes.find(v=>v.id===volumeId)||novel.volumes[0],[novel,volumeId]); const chapter=useMemo(()=>volume.chapters.find(c=>c.id===chapterId)||volume.chapters[0],[volume,chapterId]); const count=chapter.content.replace(/\s/g,'').length;
+ useEffect(()=>localStorage.setItem('novelforge-novel',JSON.stringify(novel)),[novel]); useEffect(()=>localStorage.setItem('novelforge-people',JSON.stringify(people)),[people]); useEffect(()=>localStorage.setItem('novelforge-world',JSON.stringify(world)),[world]);
+ const update=(patch:Partial<Chapter>)=>setNovel(n=>({...n,volumes:n.volumes.map(v=>v.id===volume.id?{...v,chapters:v.chapters.map(c=>c.id===chapter.id?{...c,...patch}:c)}:v)}));
+ const addChapter=()=>{const id='c-'+Date.now();const next={id,title:`第${volume.chapters.length+1}章  未命名章节`,words:0,status:'draft' as const,content:'新的章节从这里开始。'};setNovel(n=>({...n,volumes:n.volumes.map(v=>v.id===volume.id?{...v,chapters:[...v.chapters,next]}:v)}));setChapterId(id)};
+ const addVolume=()=>{const vId='v-'+Date.now(),cId='c-'+(Date.now()+1);const v={id:vId,title:`第${novel.volumes.length+1}卷  新卷名`,chapters:[{id:cId,title:'第一章  新章节',words:0,status:'draft' as const,content:'新卷的第一章节从这里开始。'}]};setNovel(n=>({...n,volumes:[...n.volumes,v]}));setVolumeId(vId);setChapterId(cId)};
+ const deleteChapter=()=>{if(volume.chapters.length===1)return;const index=volume.chapters.findIndex(c=>c.id===chapter.id);const next=volume.chapters[index-1]||volume.chapters[index+1];setNovel(n=>({...n,volumes:n.volumes.map(v=>v.id===volume.id?{...v,chapters:v.chapters.filter(c=>c.id!==chapter.id)}:v)}));setChapterId(next.id)};
+ const addNote=()=>{const note={id:String(Date.now()),name:libTab==='人物'?'未命名人物':'未命名设定',detail:'点击这里补充设定内容。'};if(libTab==='人物')setPeople(p=>[...p,note]);else setWorld(w=>[...w,note])};
+ const notes=libTab==='人物'?people:world;
+ const run=()=>setResult(mode==='续写'?'林默抬起头。那个人的脸藏在帽檐的阴影里，只有一双眼睛，像两粒被雨水打磨过的黑曜石。\n\n“把信交给我。”\n\n车站的灯忽然全部熄灭。':mode==='总结'?'本章讲述林默在雨夜抵达旧车站，并遇见一位等待他的神秘人物。银色月纹与未署名的信件暗示着更大的秘密。':'这段文字的情绪压抑而清晰，雨夜与神秘信件形成了良好的悬疑铺垫。');
+ return <div className="app"><header className="topbar"><div className="brand"><div className="brand-mark"><BookOpen size={18}/></div><div><b>NovelForge</b><small>AI 小说工作台</small></div></div><div className="crumbs"><span>我的作品</span><span>/</span><strong>{novel.title}</strong><ChevronDown size={12}/></div><div className="top-actions"><span className="saved"><span className="dot"/> 已自动保存</span><button className="icon-btn"><Search size={16}/></button><button className="icon-btn"><Sun size={16}/></button><button className="avatar">R</button></div></header>
+ <div className="workspace"><aside className="sidebar"><div className="side-header"><span>作品导航</span><button onClick={addVolume}><Plus size={14}/></button></div><div className="book-card"><div className="book-cover">雾<br/>海</div><div className="book-info"><strong>{novel.title}</strong><small>{novel.subtitle}</small></div><ChevronDown size={14}/></div><div className="side-nav"><div className="nav-head"><span>章节</span><span>{novel.volumes.reduce((a,v)=>a+v.chapters.reduce((x,c)=>x+c.words,0),0).toLocaleString()} 字</span></div><div className="tree">{novel.volumes.map(v=><div className="volume" key={v.id}><div className="volume-row"><ChevronDown size={12}/><span>{v.title}</span><button onClick={()=>{setVolumeId(v.id);setChapterId(v.chapters[0].id)}}><Plus size={13}/></button></div>{v.chapters.map(c=><button className={`chapter ${c.id===chapter.id?'selected':''}`} key={c.id} onClick={()=>{setVolumeId(v.id);setChapterId(c.id)}}><FileText size={14}/><span>{c.title}</span><em>{c.words?`${Math.floor(c.words/1000)}k`:'—'}</em></button>)}</div>)}</div></div><div className="side-footer"><button onClick={()=>setModal('library')}><Library size={15}/> 资料库</button><button onClick={()=>setModal('library')}><PenLine size={15}/> 故事大纲</button><button onClick={()=>setModal('settings')}><Settings2 size={15}/> 工作台设置</button></div></aside>
+ <main className="editor-panel"><div className="editor-toolbar"><div className="mode-tabs"><button className="active">写作</button><button onClick={()=>setModal('library')}>大纲</button><button onClick={()=>setModal('library')}>资料</button></div><div className="toolbar-right"><span className="status-pill"><span className="dot"/> 写作中</span><button className="icon-btn" onClick={deleteChapter} title="删除当前章节"><Trash2 size={15}/></button><button className="icon-btn"><Menu size={16}/></button></div></div><div className="editor-shell"><div className="editor-wrap"><div className="eyebrow">{volume.title}</div><div className="title-box"><input value={chapter.title} onChange={e=>update({title:e.target.value})}/></div><div className="chapter-meta">第 {volume.chapters.findIndex(c=>c.id===chapter.id)+1} 章</div><div className="rule"/><textarea value={chapter.content} onChange={e=>{const content=e.target.value;update({content,words:content.replace(/\s/g,'').length})}} spellCheck={false}/><div className="editor-footer"><span>Markdown 支持</span><span>{count.toLocaleString()} 字</span></div></div></div></main>
+ {assistant&&<aside className="ai-panel"><div className="ai-head"><div className="ai-title"><div className="ai-mark"><Bot size={16}/></div><div><b>AI 助手</b><small>让灵感继续发生</small></div></div><button className="icon-btn" onClick={()=>setAssistant(false)}><X size={16}/></button></div><div className="tab-group">{['续写','总结','润色'].map(x=><button className={mode===x?'active':''} onClick={()=>setMode(x)} key={x}>{x}</button>)}</div><div className="context-box"><div className="head"><span>当前上下文</span><span>3 项</span></div><div className="context-item"><FileText size={12}/> 当前章节 <span>已启用</span></div><div className="context-item"><Library size={12}/> 人物设定 <span>已启用</span></div><div className="context-item"><BookOpen size={12}/> 第一卷摘要 <span>已启用</span></div></div><div className="ai-actions"><p>你想做什么？</p><div className="action-grid"><button onClick={run}><WandSparkles size={15}/><span>续写</span><small>延续剧情</small></button><button onClick={run}><Sparkles size={15}/><span>总结</span><small>提炼要点</small></button><button onClick={run}><Sparkles size={15}/><span>润色</span><small>优化表达</small></button><button onClick={run}><PenLine size={15}/><span>扩写</span><small>丰富细节</small></button></div></div><div className="result-box"><div className="title"><Sparkles size={12}/> AI 结果</div>{result}<button onClick={()=>update({content:chapter.content+'\n\n'+result,words:(chapter.content+'\n\n'+result).replace(/\s/g,'').length})}>插入正文</button></div><div className="model-row"><div className="left"><span className="dot"/> DeepSeek</div><span onClick={()=>setModal('settings')}>切换</span></div></aside>}{!assistant&&<button className="open-ai" onClick={()=>setAssistant(true)}><Bot size={15}/> 打开 AI 助手</button>}</div>
+ {modal==='library'&&<div className="modal-backdrop" onClick={()=>setModal(null)}><div className="modal" onClick={e=>e.stopPropagation()}><div className="modal-head"><div><h3>创作资料库</h3><small>人物、世界观与故事大纲</small></div><button className="icon-btn" onClick={()=>setModal(null)}><X size={16}/></button></div><div className="tab-group library-tabs">{['人物','世界观','大纲'].map(x=><button className={libTab===x?'active':''} onClick={()=>setLibTab(x as typeof libTab)} key={x}>{x}</button>)}</div>{libTab!=='大纲'&&<button className="save-button" onClick={addNote}><Plus size={14}/> 新建设定</button>}<div className="notes">{libTab==='大纲'?<textarea className="outline" defaultValue={localStorage.getItem('novelforge-outline')||'故事总纲\n\n在这里记录故事主线、分卷目标与关键转折。'} onChange={e=>localStorage.setItem('novelforge-outline',e.target.value)}/>:notes.length?notes.map(n=><div className="note" key={n.id}><input value={n.name} onChange={e=>{const setter=libTab==='人物'?setPeople:setWorld;setter(list=>list.map(x=>x.id===n.id?{...x,name:e.target.value}:x))}}/><textarea value={n.detail} onChange={e=>{const setter=libTab==='人物'?setPeople:setWorld;setter(list=>list.map(x=>x.id===n.id?{...x,detail:e.target.value}:x))}}/></div>):<p className="empty">还没有资料，点击“新建设定”开始。</p>}</div></div></div>}
+ {modal==='settings'&&<div className="modal-backdrop" onClick={()=>setModal(null)}><div className="modal" onClick={e=>e.stopPropagation()}><div className="modal-head"><div><h3>工作台设置</h3><small>AI 接口配置将保存在本机</small></div><button className="icon-btn" onClick={()=>setModal(null)}><X size={16}/></button></div><div className="provider-card"><strong>OpenAI 兼容接口</strong><div className="provider-grid"><label>模型<input defaultValue="gpt-4o-mini"/></label><label>接口地址<input defaultValue="https://api.openai.com/v1"/></label><label className="full-width">API Key<input type="password" placeholder="输入后仅保存在本机"/></label></div></div><div className="provider-card"><strong>DeepSeek</strong><div className="provider-grid"><label>模型<input defaultValue="deepseek-chat"/></label><label>接口地址<input defaultValue="https://api.deepseek.com/v1"/></label><label className="full-width">API Key<input type="password" placeholder="输入后仅保存在本机"/></label></div></div><button className="save-button" onClick={()=>setModal(null)}>保存设置</button></div></div>}</div>;
 }
-
 export default App;
