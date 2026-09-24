@@ -21,6 +21,33 @@ export type AIRequest = {
   signal?: AbortSignal;
 };
 
+export const defaultProviders: AIProvider[] = [
+  {
+    id: 'openai',
+    name: 'OpenAI 兼容接口',
+    baseUrl: 'https://api.openai.com/v1',
+    apiKey: '',
+    model: 'gpt-4o-mini',
+    enabled: true,
+  },
+  {
+    id: 'deepseek',
+    name: 'DeepSeek',
+    baseUrl: 'https://api.deepseek.com',
+    apiKey: '',
+    model: 'deepseek-chat',
+    enabled: false,
+  },
+  {
+    id: 'custom',
+    name: '自定义接口',
+    baseUrl: '',
+    apiKey: '',
+    model: '',
+    enabled: false,
+  },
+];
+
 const taskInstructions: Record<AITask, string> = {
   continue: '续写当前章节。保持已有叙事视角、人物性格、时代背景和语言风格，不要重复原文，直接输出可接在正文后面的内容。',
   summarize: '总结当前章节，提炼主要事件、人物变化、冲突、线索和未解决的问题。使用简洁的中文分点输出。',
